@@ -1,0 +1,10 @@
+-------------
+    NOTES
+-------------
+
+1) The input_file directory contains two directories (invalid_case & valid_case),
+   the one contains a file with the correct filename (filename should contains the: to-process )
+   in order to pass the EIP filter.
+   The other one contains an invalid filename in order to not pass from the EIP filter.
+
+2) The result_file directory contains the output file when the program runs.

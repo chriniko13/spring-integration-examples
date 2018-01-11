@@ -10,15 +10,16 @@ import java.util.function.Predicate;
 
 public class FilenameSelector implements MessageSelector {
 
-    private List<Predicate<Message<?>>> predicatesToSatisfy;
-    private Predicate<Message<?>> aggregator;
+    private static final String TO_PROCESS = "to-process";
+
+    private final List<Predicate<Message<?>>> predicatesToSatisfy;
+    private final Predicate<Message<?>> aggregator;
 
     public FilenameSelector() {
         predicatesToSatisfy = new LinkedList<>();
 
         predicatesToSatisfy.add(message -> message.getPayload() instanceof File);
-        predicatesToSatisfy.add(message -> ((File)message.getPayload()).getName().contains("to-process"));
-
+        predicatesToSatisfy.add(message -> ((File)message.getPayload()).getName().contains(TO_PROCESS));
 
         aggregator = predicatesToSatisfy.stream().reduce(msg -> true, Predicate::and);
     }
