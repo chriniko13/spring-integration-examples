@@ -1,0 +1,13 @@
+<programmers>
+  <info>string</info>
+  <programmer>
+    <firstname>string</firstname>
+    <initials>string</initials>
+    <surname>string</surname>
+    <ranking>2</ranking>
+    <skills>
+      <!--Zero or more repetitions:-->
+      <skill>string</skill>
+    </skills>
+  </programmer>
+</programmers>

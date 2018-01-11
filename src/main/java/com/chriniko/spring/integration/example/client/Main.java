@@ -20,6 +20,8 @@ public class Main {
 
         //new SeventhExample().run();
 
-        new EightExample().run();
+        //new EightExample().run();
+
+        new NinthExample().run();
     }
 }

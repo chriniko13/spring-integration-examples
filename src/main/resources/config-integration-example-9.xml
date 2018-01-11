@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:int-file="http://www.springframework.org/schema/integration/file"
+       xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+
+       http://www.springframework.org/schema/integration
+       http://www.springframework.org/schema/integration/spring-integration.xsd
+
+
+       http://www.springframework.org/schema/task
+       http://www.springframework.org/schema/task/spring-task.xsd
+
+       http://www.springframework.org/schema/integration/file
+       http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+
+       http://www.springframework.org/schema/integration/xml
+       http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!-- CHANNELS -->
+    <int:channel id="inboundFileChannel"/>
+
+    <int:channel id="fileDataChannel"/>
+
+    <int:channel id="validatedFileDataChannel"/>
+
+    <int:channel id="outboundFileChannel"/>
+
+    <int:channel id="discardedMessagesChannel"/>
+
+
+    <!-- WORKFLOW -->
+    <int-file:inbound-channel-adapter directory="file:/home/nchristi/inbound" channel="inboundFileChannel">
+        <int-file:locker ref="customFileLocker"/>
+
+        <int:poller id="defaultPoller"
+                    default="true"
+                    max-messages-per-poll="5"
+                    fixed-rate="200"
+                    task-executor="workerExecutor"/>
+    </int-file:inbound-channel-adapter>
+
+    <int-file:file-to-string-transformer input-channel="inboundFileChannel"
+                                         output-channel="fileDataChannel"
+                                         charset="UTF-8"/>
+
+    <int-xml:validating-filter schema-location="xsd/programmers.xsd"
+                               input-channel="fileDataChannel"
+                               output-channel="validatedFileDataChannel"
+                               discard-channel="discardedMessagesChannel"/>
+
+    <int-xml:unmarshalling-transformer input-channel="validatedFileDataChannel"
+                                       output-channel="outboundFileChannel"
+                                       unmarshaller="jaxb2marshaller"/>
+
+    <int:service-activator input-channel="outboundFileChannel"
+                           ref="loggerActivator"/>
+
+
+    <!-- UTIL BEANS -->
+    <task:executor id="workerExecutor" keep-alive="7" pool-size="3-10" queue-capacity="50"
+                   rejection-policy="CALLER_RUNS"/>
+
+    <bean id="customFileLocker" class="com.chriniko.spring.integration.example.client.locker.CustomFileLocker"/>
+
+    <bean id="discardedMessagesHandler"
+          class="com.chriniko.spring.integration.example.client.discard.DiscardedMessagesHandler"/>
+
+    <bean id="loggerActivator" class="com.chriniko.spring.integration.example.client.activator.LoggerActivator"/>
+
+    <bean id="jaxb2marshaller" class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
+        <property name="contextPath" value="com.chriniko.spring.integration.example.client.domain"/>
+    </bean>
+
+
+    <!-- DISCARDED MESSAGES HANDLER -->
+    <int:service-activator input-channel="discardedMessagesChannel"
+                           ref="discardedMessagesHandler"
+                           method="handle" />
+
+</beans>
