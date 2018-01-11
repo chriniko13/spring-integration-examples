@@ -2,6 +2,7 @@
     <xs:element name="programmers">
         <xs:complexType>
             <xs:sequence>
+                <xs:element type="xs:string" name="info"/>
                 <xs:element name="programmer">
                     <xs:complexType>
                         <xs:sequence>
@@ -23,3 +24,4 @@
         </xs:complexType>
     </xs:element>
 </xs:schema>
+

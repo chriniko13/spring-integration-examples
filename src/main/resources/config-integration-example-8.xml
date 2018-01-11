@@ -7,6 +7,8 @@
        xmlns:int="http://www.springframework.org/schema/integration"
        xmlns:task="http://www.springframework.org/schema/task"
        xmlns:int-file="http://www.springframework.org/schema/integration/file"
+       xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+
 
        xsi:schemaLocation="http://www.springframework.org/schema/beans
        http://www.springframework.org/schema/beans/spring-beans.xsd
@@ -19,10 +21,17 @@
        http://www.springframework.org/schema/task/spring-task.xsd
 
        http://www.springframework.org/schema/integration/file
-       http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+       http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+
+       http://www.springframework.org/schema/integration/xml
+       http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
 
     <!-- CHANNELS -->
     <int:channel id="inboundFileChannel"/>
+
+    <int:channel id="fileDataChannel"/>
+
+    <int:channel id="validatedFileDataChannel"/>
 
     <int:channel id="outboundFileChannel"/>
 
@@ -39,26 +48,39 @@
                     task-executor="workerExecutor"/>
     </int-file:inbound-channel-adapter>
 
-    <int:filter input-channel="inboundFileChannel"
-                output-channel="outboundFileChannel"
-                ref="filenameSelector"
-                discard-channel="discardedMessagesChannel"/>
+
+    <int-file:file-to-string-transformer input-channel="inboundFileChannel"
+                                         output-channel="fileDataChannel"
+                                         charset="UTF-8"/>
+
+    <int-xml:validating-filter schema-location="xsd/programmers.xsd"
+                               input-channel="fileDataChannel"
+                               output-channel="validatedFileDataChannel"
+                               discard-channel="discardedMessagesChannel"/>
+
+    <int-xml:xpath-expression id="seniorRankingXpathExpression" expression="/programmers[info='VALIDATED']"/>
+
+    <int-xml:xpath-filter input-channel="validatedFileDataChannel"
+                          output-channel="outboundFileChannel"
+                          xpath-expression-ref="seniorRankingXpathExpression"
+                          discard-channel="discardedMessagesChannel"/>
+
 
     <int-file:outbound-channel-adapter channel="outboundFileChannel"
                                        directory="file:/home/nchristi/outbound"
-                                       filename-generator="filenameGenerator3"
+                                       filename-generator="filenameGenerator2"
                                        mode="REPLACE"/>
 
     <!-- UTIL BEANS -->
-    <task:executor id="workerExecutor" keep-alive="7" pool-size="3-10" queue-capacity="50" rejection-policy="CALLER_RUNS"/>
+    <task:executor id="workerExecutor" keep-alive="7" pool-size="3-10" queue-capacity="50"
+                   rejection-policy="CALLER_RUNS"/>
 
-    <bean id="filenameGenerator3" class="com.chriniko.spring.integration.example.client.generator.FilenameGenerator3"/>
+    <bean id="filenameGenerator2" class="com.chriniko.spring.integration.example.client.generator.FilenameGenerator2"/>
 
     <bean id="customFileLocker" class="com.chriniko.spring.integration.example.client.locker.CustomFileLocker"/>
 
-    <bean id="filenameSelector" class="com.chriniko.spring.integration.example.client.selector.FilenameSelector"/>
-
-    <bean id="discardedMessagesHandler" class="com.chriniko.spring.integration.example.client.discard.DiscardedMessagesHandler"/>
+    <bean id="discardedMessagesHandler"
+          class="com.chriniko.spring.integration.example.client.discard.DiscardedMessagesHandler"/>
 
 
     <!-- DISCARDED MESSAGES HANDLER -->

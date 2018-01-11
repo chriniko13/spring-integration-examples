@@ -8,9 +8,14 @@ public class DiscardedMessagesHandler {
 
         String threadName = Thread.currentThread().getName();
 
+        System.out.println("~~~~~~~~~DISCARDED MESSAGE~~~~~~~~~~");
+
         System.out.println("[threadName = "
                 + threadName
                 + "] --- Discarded Message = "
                 + message);
+
+
+        System.out.println();
     }
 }
