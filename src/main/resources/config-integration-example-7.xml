@@ -40,18 +40,17 @@
                     task-executor="workerExecutor"/>
     </int-file:inbound-channel-adapter>
 
-
     <int:filter input-channel="inboundFileChannel" output-channel="outboundFileChannel" ref="filenameSelector"/>
 
     <int-file:outbound-channel-adapter channel="outboundFileChannel"
                                        directory="file:/home/nchristi/outbound"
-                                       filename-generator="filenameGenerator2"
+                                       filename-generator="filenameGenerator3"
                                        mode="REPLACE"/>
 
     <!-- UTIL BEANS -->
     <task:executor id="workerExecutor" keep-alive="7" pool-size="3-10" queue-capacity="50" rejection-policy="CALLER_RUNS"/>
 
-    <bean id="filenameGenerator2" class="com.chriniko.spring.integration.example.client.generator.FilenameGenerator2"/>
+    <bean id="filenameGenerator3" class="com.chriniko.spring.integration.example.client.generator.FilenameGenerator3"/>
 
     <bean id="customFileLocker" class="com.chriniko.spring.integration.example.client.locker.CustomFileLocker"/>
 
