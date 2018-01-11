@@ -1,0 +1,25 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="programmers">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="programmer">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element type="xs:string" name="firstname"/>
+                            <xs:element type="xs:string" name="initials"/>
+                            <xs:element type="xs:string" name="surname"/>
+                            <xs:element type="xs:byte" name="ranking"/>
+                            <xs:element name="skills">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element type="xs:string" name="skill" maxOccurs="unbounded" minOccurs="0"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

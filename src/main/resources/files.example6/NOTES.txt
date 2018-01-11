@@ -1,0 +1,7 @@
+--------------------
+       NOTES
+--------------------
+
+
+1) The input file is a sample of how the file should be in order to have a working program for example 6.
+2) The output file is how the outcome should be when the program (example 6) runs.

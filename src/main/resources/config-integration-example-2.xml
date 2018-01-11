@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+       xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
+
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:task="http://www.springframework.org/schema/task"
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+
+       http://www.springframework.org/schema/integration
+       http://www.springframework.org/schema/integration/spring-integration.xsd
+
+       http://www.springframework.org/schema/integration/stream
+       http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+    <int:channel id="messageChannel">
+        <int:queue capacity="2"/>
+        <int:interceptors>
+            <bean class="com.chriniko.spring.integration.example.client.interceptor.LogMessageInterceptor"/>
+        </int:interceptors>
+    </int:channel>
+
+    <int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="200" task-executor="workerExecutor"/>
+
+    <int-stream:stdin-channel-adapter id="producer" channel="messageChannel"/>
+
+    <int-stream:stdout-channel-adapter id="consumer1" channel="messageChannel" append-newline="true" />
+
+    <int-stream:stdout-channel-adapter id="consumer2" channel="messageChannel" append-newline="true" />
+
+    <int-stream:stdout-channel-adapter id="consumer3" channel="messageChannel" append-newline="true" />
+
+
+    <task:executor id="workerExecutor" keep-alive="7" pool-size="3-10" queue-capacity="50" rejection-policy="CALLER_RUNS"/>
+
+</beans>

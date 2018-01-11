@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:int-file="http://www.springframework.org/schema/integration/file"
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+
+       http://www.springframework.org/schema/integration
+       http://www.springframework.org/schema/integration/spring-integration.xsd
+
+
+       http://www.springframework.org/schema/task
+       http://www.springframework.org/schema/task/spring-task.xsd
+
+       http://www.springframework.org/schema/integration/file
+       http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+
+    <!-- CHANNELS -->
+    <int:channel id="inboundFileChannel"/>
+
+    <int:channel id="fileDataChannel"/>
+
+    <int:channel id="outboundFileChannel"/>
+
+
+    <!-- WORKFLOW -->
+    <int-file:inbound-channel-adapter directory="file:/home/nchristi/inbound" channel="inboundFileChannel">
+        <int-file:locker ref="customFileLocker"/>
+
+        <int:poller id="defaultPoller"
+                    default="true"
+                    max-messages-per-poll="5"
+                    fixed-rate="200"
+                    task-executor="workerExecutor"
+                    error-channel="errorChannel"/>
+    </int-file:inbound-channel-adapter>
+
+
+    <int-file:file-to-string-transformer charset="UTF-8"
+                                         input-channel="inboundFileChannel"
+                                         output-channel="fileDataChannel"/>
+
+    <int:transformer
+            ref="capitalCaseTransformer"
+            method="transform"
+            input-channel="fileDataChannel"
+            output-channel="outboundFileChannel"/>
+
+
+    <int-file:outbound-channel-adapter channel="outboundFileChannel"
+                                       directory="file:/home/nchristi/outbound"
+                                       filename-generator="filenameGenerator2"
+                                       mode="FAIL"/>
+
+    <!-- UTIL BEANS -->
+    <task:executor id="workerExecutor" keep-alive="7" pool-size="3-10" queue-capacity="50" rejection-policy="CALLER_RUNS"/>
+
+    <bean id="filenameGenerator2" class="com.chriniko.spring.integration.example.client.generator.FilenameGenerator2"/>
+
+    <bean id="defaultErrorHandler" class="com.chriniko.spring.integration.example.client.error.DefaultErrorHandler"/>
+
+    <bean id="capitalCaseTransformer" class="com.chriniko.spring.integration.example.client.transformer.CapitalCaseTransformer"/>
+
+    <bean id="customFileLocker" class="com.chriniko.spring.integration.example.client.locker.CustomFileLocker"/>
+
+    <!-- WORKFLOW ERROR HANDLING -->
+    <int:service-activator input-channel="errorChannel" ref="defaultErrorHandler" method="handle"/>
+
+
+</beans>
