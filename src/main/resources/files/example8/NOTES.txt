@@ -1,0 +1,7 @@
+-------------
+    NOTES
+-------------
+
+1) The input_file directory contains three files, two of them does not gets processed due to the EIP filters.
+
+2) The result_file directory contains the output file when the program runs.

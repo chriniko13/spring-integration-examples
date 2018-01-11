@@ -1,0 +1,20 @@
+<programmers>
+
+    <info>VALIDATED</info>
+
+    <programmer>
+        <firstname>Christos</firstname>
+        <initials></initials>
+        <surname>Christou</surname>
+        <ranking>7</ranking>
+        <skills>
+            <skill>Java</skill>
+            <skill>JavaEE7</skill>
+            <skill>Spring</skill>
+            <skill>C</skill>
+            <skill>Scala</skill>
+            <skill>Akka</skill>
+        </skills>
+    </programmer>
+
+</programmers>

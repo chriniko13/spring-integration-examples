@@ -7,10 +7,7 @@ public class FilenameGenerator2 implements FileNameGenerator {
 
     @Override
     public String generateFileName(Message<?> message) {
-
         String fileName = (String) message.getHeaders().get("file_name");
-
-
         return "outbound_" + fileName;
     }
 }
