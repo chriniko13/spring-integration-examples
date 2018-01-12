@@ -16,6 +16,6 @@ public class DiscardedMessagesHandler {
                 + message);
 
 
-        System.out.println();
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
     }
 }

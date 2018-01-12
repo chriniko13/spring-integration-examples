@@ -3,7 +3,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element type="xs:string" name="info"/>
-                <xs:element name="programmer">
+                <xs:element name="programmer" maxOccurs="unbounded" minOccurs="0">
                     <xs:complexType>
                         <xs:sequence>
                             <xs:element type="xs:string" name="firstname"/>

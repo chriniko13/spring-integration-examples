@@ -1,0 +1,198 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:int-file="http://www.springframework.org/schema/integration/file"
+       xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+       xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+       xmlns:context="http://www.springframework.org/schema/context"
+
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+
+       http://www.springframework.org/schema/integration
+       http://www.springframework.org/schema/integration/spring-integration.xsd
+
+
+       http://www.springframework.org/schema/task
+       http://www.springframework.org/schema/task/spring-task.xsd
+
+       http://www.springframework.org/schema/integration/file
+       http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+
+       http://www.springframework.org/schema/integration/xml
+       http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+    <!-- START: CHANNELS -->
+    <int:channel id="inboundFileChannel" datatype="java.io.File"/>
+
+    <int:channel id="fileDataChannel" datatype="java.lang.String"/>
+
+    <int:channel id="validatedFileDataChannel" datatype="java.lang.String"/>
+
+    <int:channel id="juniorProgrammersChannel"
+                 datatype="java.lang.String"/>
+    <int:channel id="juniorObjProgrammersChannel"
+                 datatype="com.chriniko.spring.integration.example.client.domain.Programmers"/>
+    <int:channel id="juniorObjSplittedProgrammersChannel"
+                 datatype="com.chriniko.spring.integration.example.client.domain.Programmer"/>
+
+    <int:channel id="mediorProgrammersChannel"
+                 datatype="java.lang.String"/>
+    <int:channel id="mediorObjProgrammersChannel"
+                 datatype="com.chriniko.spring.integration.example.client.domain.Programmers"/>
+    <int:channel id="mediorObjSplittedProgrammersChannel"
+                 datatype="com.chriniko.spring.integration.example.client.domain.Programmer"/>
+
+    <int:channel id="seniorProgrammersChannel"
+                 datatype="java.lang.String"/>
+    <int:channel id="seniorObjProgrammersChannel"
+                 datatype="com.chriniko.spring.integration.example.client.domain.Programmers"/>
+    <int:channel id="seniorObjSplittedProgrammersChannel"
+                 datatype="com.chriniko.spring.integration.example.client.domain.Programmer"/>
+
+    <int:channel id="discardedMessagesChannel"/>
+    <!-- END: CHANNELS -->
+
+
+    <!-- START: WORKFLOW -->
+    <int-file:inbound-channel-adapter directory="file:/home/nchristi/inbound" channel="inboundFileChannel">
+        <int-file:locker ref="customFileLocker"/>
+
+        <int:poller id="defaultPoller"
+                    default="true"
+                    max-messages-per-poll="5"
+                    fixed-rate="200"
+                    task-executor="workerExecutor"/>
+    </int-file:inbound-channel-adapter>
+
+    <int-file:file-to-string-transformer input-channel="inboundFileChannel"
+                                         output-channel="fileDataChannel"
+                                         charset="UTF-8"/>
+
+    <int-xml:validating-filter schema-location="xsd/programmers.xsd"
+                               input-channel="fileDataChannel"
+                               output-channel="validatedFileDataChannel"
+                               discard-channel="discardedMessagesChannel"/>
+
+    <int-xml:xpath-expression id="rankingXpathExpression" expression="/programmers/programmer/ranking"/>
+    <int-xml:xpath-router input-channel="validatedFileDataChannel"
+                          xpath-expression-ref="rankingXpathExpression"
+                          ignore-send-failures="true"
+                          resolution-required="true">
+        <int-xml:mapping value="1" channel="juniorProgrammersChannel"/>
+        <int-xml:mapping value="4" channel="mediorProgrammersChannel"/>
+        <int-xml:mapping value="7" channel="seniorProgrammersChannel"/>
+    </int-xml:xpath-router>
+
+    <int-xml:unmarshalling-transformer input-channel="juniorProgrammersChannel"
+                                       output-channel="juniorObjProgrammersChannel"
+                                       unmarshaller="jaxb2marshaller"/>
+
+    <int-xml:unmarshalling-transformer input-channel="mediorProgrammersChannel"
+                                       output-channel="mediorObjProgrammersChannel"
+                                       unmarshaller="jaxb2marshaller"/>
+
+    <int-xml:unmarshalling-transformer input-channel="seniorProgrammersChannel"
+                                       output-channel="seniorObjProgrammersChannel"
+                                       unmarshaller="jaxb2marshaller"/>
+
+    <int:splitter input-channel="juniorObjProgrammersChannel"
+                  output-channel="juniorObjSplittedProgrammersChannel"
+                  ref="programmersSplitter"/>
+
+    <int:splitter input-channel="mediorObjProgrammersChannel"
+                  output-channel="mediorObjSplittedProgrammersChannel"
+                  ref="programmersSplitter"/>
+
+    <int:splitter input-channel="seniorObjProgrammersChannel"
+                  output-channel="seniorObjSplittedProgrammersChannel"
+                  ref="programmersSplitter"/>
+
+    <int-jdbc:outbound-channel-adapter channel="juniorObjSplittedProgrammersChannel"
+                                       data-source="dataSource"
+                                       sql-parameter-source-factory="spelSource"
+                                       query="INSERT INTO test_spring_integration.junior_devs(id_bin, firstname, initials, surname, current_ranking) VALUES (unhex(replace(uuid(),'-','')), :firstname, :initials, :surname, :current_ranking)"/>
+
+    <int-jdbc:outbound-channel-adapter channel="mediorObjSplittedProgrammersChannel"
+                                       data-source="dataSource"
+                                       sql-parameter-source-factory="spelSource"
+                                       query="INSERT INTO test_spring_integration.medior_devs(id_bin, firstname, initials, surname, current_ranking) VALUES (unhex(replace(uuid(),'-','')), :firstname, :initials, :surname, :current_ranking)"/>
+
+    <int-jdbc:outbound-channel-adapter channel="seniorObjSplittedProgrammersChannel"
+                                       data-source="dataSource"
+                                       sql-parameter-source-factory="spelSource"
+                                       query="INSERT INTO test_spring_integration.senior_devs(id_bin, firstname, initials, surname, current_ranking) VALUES (unhex(replace(uuid(),'-','')), :firstname, :initials, :surname, :current_ranking)"/>
+
+    <bean id="spelSource"
+          class="org.springframework.integration.jdbc.ExpressionEvaluatingSqlParameterSourceFactory">
+        <property name="parameterExpressions">
+            <map>
+                <entry key="firstname" value="payload.firstname"/>
+                <entry key="initials" value="payload.initials"/>
+                <entry key="surname" value="payload.surname"/>
+                <entry key="current_ranking" value="payload.ranking"/>
+
+                <!--<entry key="createdDate" value="new java.util.Date()"/>-->
+                <!--<entry key="payload" value="T(com.chriniko.spring.integration.example.client.domain.Programmers)."/>-->
+            </map>
+        </property>
+    </bean>
+    <!-- END: WORKFLOW -->
+
+
+    <!-- START: UTIL BEANS -->
+    <task:executor id="workerExecutor" keep-alive="7" pool-size="3-10" queue-capacity="50"
+                   rejection-policy="CALLER_RUNS"/>
+
+    <bean id="customFileLocker" class="com.chriniko.spring.integration.example.client.locker.CustomFileLocker"/>
+
+    <bean id="discardedMessagesHandler"
+          class="com.chriniko.spring.integration.example.client.discard.DiscardedMessagesHandler"/>
+
+    <bean id="loggerActivator" class="com.chriniko.spring.integration.example.client.activator.LoggerActivator"/>
+
+    <bean id="dbInit" class="com.chriniko.spring.integration.example.client.init.DbInit"
+          init-method="initializeScript"
+          lazy-init="false">
+        <constructor-arg name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="jaxb2marshaller" class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
+        <property name="contextPath" value="com.chriniko.spring.integration.example.client.domain"/>
+    </bean>
+
+    <bean id="programmersSplitter"
+          class="com.chriniko.spring.integration.example.client.splitter.ProgrammersSplitter"
+          scope="prototype"/>
+    <!-- END: UTIL BEANS -->
+
+
+    <!-- START: DATASOURCE CONFIGURATION -->
+    <bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driverClassName}"/>
+        <property name="jdbcUrl" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <constructor-arg name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- activate properties -->
+    <context:property-placeholder location="classpath:application.properties"/>
+    <!-- END: DATASOURCE CONFIGURATION -->
+
+
+    <!-- START: DISCARDED MESSAGES HANDLER -->
+    <int:service-activator input-channel="discardedMessagesChannel"
+                           ref="discardedMessagesHandler"
+                           method="handle"/>
+    <!-- END: DISCARDED MESSAGES HANDLER -->
+
+</beans>

@@ -1,0 +1,31 @@
+<programmers>
+
+    <info>UNDER_VALIDATION</info>
+
+    <programmer>
+        <firstname>Antonios</firstname>
+        <initials>B.</initials>
+        <surname>Antoniou</surname>
+        <ranking>1</ranking>
+        <skills>
+            <skill>Java</skill>
+            <skill>C</skill>
+        </skills>
+    </programmer>
+
+    <programmer>
+        <firstname>Vasilios</firstname>
+        <initials>B.</initials>
+        <surname>Vasiliou</surname>
+        <ranking>4</ranking>
+        <skills>
+            <skill>Java</skill>
+            <skill>JavaEE7</skill>
+            <skill>Spring</skill>
+            <skill>C</skill>
+            <skill>Scala</skill>
+            <skill>Akka</skill>
+        </skills>
+    </programmer>
+
+</programmers>

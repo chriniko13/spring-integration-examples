@@ -11,6 +11,6 @@ public class LoggerActivator implements MessageHandler {
     public void handleMessage(Message<?> message) throws MessagingException {
         System.out.println();
         System.out.println("@@@@@ MESSAGE RECEIVED @@@@@ ----> " + message.getPayload().toString());
-        System.out.println();
+        System.out.println("\n");
     }
 }

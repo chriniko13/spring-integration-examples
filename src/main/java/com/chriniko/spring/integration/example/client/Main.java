@@ -22,6 +22,8 @@ public class Main {
 
         //new EightExample().run();
 
-        new NinthExample().run();
+        //new NinthExample().run();
+
+        new TenthExample().run();
     }
 }
