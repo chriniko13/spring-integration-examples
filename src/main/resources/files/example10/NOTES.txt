@@ -1,0 +1,8 @@
+-------------
+    NOTES
+-------------
+
+1) The input_file directory contains three files, one of them does not gets processed due to the EIP filters.
+
+2) This example does not contain result_file directory because the output of the program gets displayed on screen and
+   gets inserted in a database table.
