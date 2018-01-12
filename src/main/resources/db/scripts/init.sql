@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS junior_devs (
   initials VARCHAR(200),
   surname VARCHAR(200),
   current_ranking INT,
+  creation_date TIMESTAMP DEFAULT now(),
   PRIMARY KEY (id_bin)
 );
 
@@ -44,6 +45,7 @@ CREATE TABLE IF NOT EXISTS medior_devs (
   initials VARCHAR(200),
   surname VARCHAR(200),
   current_ranking INT,
+  creation_date TIMESTAMP DEFAULT now(),
   PRIMARY KEY (id_bin)
 );
 
@@ -65,5 +67,6 @@ CREATE TABLE IF NOT EXISTS senior_devs (
   initials VARCHAR(200),
   surname VARCHAR(200),
   current_ranking INT,
+  creation_date TIMESTAMP DEFAULT now(),
   PRIMARY KEY (id_bin)
 );

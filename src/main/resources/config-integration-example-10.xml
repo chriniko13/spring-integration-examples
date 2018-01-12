@@ -54,6 +54,10 @@
                  datatype="com.chriniko.spring.integration.example.client.domain.Programmers"/>
     <int:channel id="seniorObjSplittedProgrammersChannel"
                  datatype="com.chriniko.spring.integration.example.client.domain.Programmer"/>
+    <int:channel id="seniorObjSplittedProgrammersChannel-DB"
+                 datatype="com.chriniko.spring.integration.example.client.domain.Programmer"/>
+    <int:channel id="seniorObjSplittedProgrammersChannel-LOG"
+                 datatype="com.chriniko.spring.integration.example.client.domain.Programmer"/>
 
     <int:channel id="discardedMessagesChannel"/>
     <!-- END: CHANNELS -->
@@ -85,7 +89,13 @@
                           ignore-send-failures="true"
                           resolution-required="true">
         <int-xml:mapping value="1" channel="juniorProgrammersChannel"/>
+        <int-xml:mapping value="2" channel="juniorProgrammersChannel"/>
+
+        <int-xml:mapping value="3" channel="mediorProgrammersChannel"/>
         <int-xml:mapping value="4" channel="mediorProgrammersChannel"/>
+        <int-xml:mapping value="5" channel="mediorProgrammersChannel"/>
+
+        <int-xml:mapping value="6" channel="seniorProgrammersChannel"/>
         <int-xml:mapping value="7" channel="seniorProgrammersChannel"/>
     </int-xml:xpath-router>
 
@@ -113,20 +123,31 @@
                   output-channel="seniorObjSplittedProgrammersChannel"
                   ref="programmersSplitter"/>
 
+    <int:recipient-list-router input-channel="seniorObjSplittedProgrammersChannel">
+        <int:recipient channel="seniorObjSplittedProgrammersChannel-DB"/>
+        <int:recipient channel="seniorObjSplittedProgrammersChannel-LOG"/>
+    </int:recipient-list-router>
+
     <int-jdbc:outbound-channel-adapter channel="juniorObjSplittedProgrammersChannel"
                                        data-source="dataSource"
                                        sql-parameter-source-factory="spelSource"
-                                       query="INSERT INTO test_spring_integration.junior_devs(id_bin, firstname, initials, surname, current_ranking) VALUES (unhex(replace(uuid(),'-','')), :firstname, :initials, :surname, :current_ranking)"/>
+                                       query="INSERT INTO test_spring_integration.junior_devs(id_bin, firstname, initials, surname, current_ranking)
+                                       VALUES (unhex(replace(uuid(),'-','')), :firstname, :initials, :surname, :current_ranking)"/>
 
     <int-jdbc:outbound-channel-adapter channel="mediorObjSplittedProgrammersChannel"
                                        data-source="dataSource"
                                        sql-parameter-source-factory="spelSource"
-                                       query="INSERT INTO test_spring_integration.medior_devs(id_bin, firstname, initials, surname, current_ranking) VALUES (unhex(replace(uuid(),'-','')), :firstname, :initials, :surname, :current_ranking)"/>
+                                       query="INSERT INTO test_spring_integration.medior_devs(id_bin, firstname, initials, surname, current_ranking)
+                                       VALUES (unhex(replace(uuid(),'-','')), :firstname, :initials, :surname, :current_ranking)"/>
 
-    <int-jdbc:outbound-channel-adapter channel="seniorObjSplittedProgrammersChannel"
+    <int-jdbc:outbound-channel-adapter channel="seniorObjSplittedProgrammersChannel-DB"
                                        data-source="dataSource"
                                        sql-parameter-source-factory="spelSource"
-                                       query="INSERT INTO test_spring_integration.senior_devs(id_bin, firstname, initials, surname, current_ranking) VALUES (unhex(replace(uuid(),'-','')), :firstname, :initials, :surname, :current_ranking)"/>
+                                       query="INSERT INTO test_spring_integration.senior_devs(id_bin, firstname, initials, surname, current_ranking)
+                                       VALUES (unhex(replace(uuid(),'-','')), :firstname, :initials, :surname, :current_ranking)"/>
+
+
+    <int:service-activator input-channel="seniorObjSplittedProgrammersChannel-LOG" ref="loggerActivator"/>
 
     <bean id="spelSource"
           class="org.springframework.integration.jdbc.ExpressionEvaluatingSqlParameterSourceFactory">
@@ -136,9 +157,6 @@
                 <entry key="initials" value="payload.initials"/>
                 <entry key="surname" value="payload.surname"/>
                 <entry key="current_ranking" value="payload.ranking"/>
-
-                <!--<entry key="createdDate" value="new java.util.Date()"/>-->
-                <!--<entry key="payload" value="T(com.chriniko.spring.integration.example.client.domain.Programmers)."/>-->
             </map>
         </property>
     </bean>
