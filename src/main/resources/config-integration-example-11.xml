@@ -1,0 +1,76 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:task="http://www.springframework.org/schema/task"
+
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+
+       http://www.springframework.org/schema/integration
+       http://www.springframework.org/schema/integration/spring-integration.xsd
+
+
+       http://www.springframework.org/schema/task
+       http://www.springframework.org/schema/task/spring-task.xsd">
+
+
+    <!-- START: CHANNELS -->
+    <int:channel id="motorcycles-inspect-test-ride-channel"/>
+
+    <int:channel id="motorcycles-available-test-ride-channel"/>
+    <!-- END: CHANNELS -->
+
+
+    <!-- START: WORKFLOW -->
+    <int:gateway service-interface="com.chriniko.spring.integration.example.client.gateway.TestRideMotorcyclesGateway"
+                 default-request-channel="motorcycles-inspect-test-ride-channel"
+                 default-reply-channel="motorcycles-available-test-ride-channel"
+                 async-executor="workerExecutor">
+        <int:method name="isAvailableForTestRide">
+            <int:header name="transactionId" value="#{T(java.util.UUID).randomUUID().toString()}"/>
+        </int:method>
+    </int:gateway>
+
+
+    <int:chain input-channel="motorcycles-inspect-test-ride-channel"
+               output-channel="motorcycles-available-test-ride-channel">
+
+        <int:splitter ref="motorcyclesSplitter"/>
+
+        <int:header-enricher>
+            <int:header name="isSystemEnabled" value="true"/>
+        </int:header-enricher>
+
+        <int:enricher>
+            <int:property name="availableForTestDrive"
+                          value="#{new java.util.Random().nextInt(2) == 0 ? false : true}"/>
+        </int:enricher>
+
+        <!-- TODO add another enricher -->
+
+        <int:aggregator correlation-strategy-expression="headers.transactionId"
+                        release-strategy="motorcyclesAggregatorReleaseStrategy"/>
+
+        <int:transformer ref="motorcycleTransformer" method="transform"/>
+
+    </int:chain>
+    <!-- END: WORKFLOW -->
+
+
+    <!-- START: UTIL BEANS -->
+    <task:executor id="workerExecutor" keep-alive="7" pool-size="3-10" queue-capacity="50"
+                   rejection-policy="CALLER_RUNS"/>
+
+    <bean id="motorcyclesSplitter" class="com.chriniko.spring.integration.example.client.splitter.MotorcyclesSplitter"/>
+
+    <bean id="motorcycleTransformer"
+          class="com.chriniko.spring.integration.example.client.transformer.MotorcyclesTransformer"/>
+
+    <bean id="motorcyclesAggregatorReleaseStrategy"
+          class="com.chriniko.spring.integration.example.client.strategy.MotorcyclesReleaseStrategy"/>
+    <!-- END: UTIL BEANS -->
+
+</beans>
