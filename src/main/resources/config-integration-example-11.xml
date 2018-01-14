@@ -34,7 +34,6 @@
         </int:method>
     </int:gateway>
 
-
     <int:chain input-channel="motorcycles-inspect-test-ride-channel"
                output-channel="motorcycles-available-test-ride-channel">
 
@@ -48,8 +47,6 @@
             <int:property name="availableForTestDrive"
                           value="#{new java.util.Random().nextInt(2) == 0 ? false : true}"/>
         </int:enricher>
-
-        <!-- TODO add another enricher -->
 
         <int:aggregator correlation-strategy-expression="headers.transactionId"
                         release-strategy="motorcyclesAggregatorReleaseStrategy"/>

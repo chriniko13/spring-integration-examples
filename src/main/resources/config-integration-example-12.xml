@@ -1,0 +1,50 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+       xmlns:int="http://www.springframework.org/schema/integration"
+
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+
+       http://www.springframework.org/schema/integration
+       http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+
+    <!-- START: CHANNELS -->
+    <int:channel id="packages-channel" datatype="com.chriniko.spring.integration.example.client.domain.Package"/>
+
+    <int:channel id="packages-processed-channel"
+                 datatype="com.chriniko.spring.integration.example.client.domain.Package">
+        <int:queue capacity="10"/>
+    </int:channel>
+
+    <int:channel id="packages-enricher-channel"/>
+
+    <int:channel id="packages-enricher-completion-channel"/>
+    <!-- END: CHANNELS -->
+
+
+    <!-- START: WORKFLOW -->
+    <int:enricher input-channel="packages-channel"
+                  output-channel="packages-processed-channel"
+                  request-channel="packages-enricher-channel"
+                  reply-channel="packages-enricher-completion-channel">
+        <int:property name="type" expression="payload"/>
+    </int:enricher>
+
+
+    <int:service-activator input-channel="packages-enricher-channel"
+                           output-channel="packages-enricher-completion-channel"
+                           ref="packageTypeEnricher"
+                           method="enrich"/>
+    <!-- END: WORKFLOW -->
+
+
+    <!-- START: UTIL BEANS -->
+    <bean id="packageTypeEnricher"
+          class="com.chriniko.spring.integration.example.client.activator.PackageTypeEnricher"/>
+    <!-- END: UTIL BEANS -->
+
+</beans>
