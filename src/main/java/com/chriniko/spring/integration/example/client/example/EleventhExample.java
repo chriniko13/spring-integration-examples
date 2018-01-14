@@ -40,7 +40,13 @@ public class EleventhExample implements Example {
         try {
             Map<Motorcycle, Map<String, String>> results = result.get();
 
-            System.out.println(" RESULTS == " + results);
+
+            results.forEach(((motorcycle, availableOptions) -> {
+
+                System.out.println("Motorcycle = " + motorcycle);
+                System.out.println("Available Options = " + availableOptions);
+                System.out.println("\n");
+            }));
 
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace(System.err);
