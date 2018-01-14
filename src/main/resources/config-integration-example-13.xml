@@ -1,0 +1,50 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+       xmlns:int="http://www.springframework.org/schema/integration"
+
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+
+       http://www.springframework.org/schema/integration
+       http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+
+    <!-- START: CHANNELS -->
+    <int:publish-subscribe-channel id="packages-channel"
+                                   datatype="com.chriniko.spring.integration.example.client.domain.Package"/>
+
+    <int:channel id="packages-result-channel"
+                 datatype="com.chriniko.spring.integration.example.client.domain.Package">
+        <int:queue capacity="10"/>
+    </int:channel>
+    <!-- END: CHANNELS -->
+
+
+    <!-- START: WORKFLOW -->
+    <int:service-activator input-channel="packages-channel"
+                           output-channel="packages-result-channel"
+                           ref="packageActivator" method="handle"/>
+
+    <int:service-activator input-channel="packages-channel"
+                           ref="packageActivator2" method="handle"/>
+
+    <int:service-activator input-channel="packages-channel"
+                           ref="packageActivator3"/>
+    <!-- END: WORKFLOW -->
+
+
+    <!-- START: UTIL BEANS -->
+    <bean id="packageActivator"
+          class="com.chriniko.spring.integration.example.client.activator.PackageActivator"/>
+
+    <bean id="packageActivator2"
+          class="com.chriniko.spring.integration.example.client.activator.PackageActivator2"/>
+
+    <bean id="packageActivator3"
+          class="com.chriniko.spring.integration.example.client.activator.PackageActivator3"/>
+    <!-- END: UTIL BEANS -->
+
+</beans>
