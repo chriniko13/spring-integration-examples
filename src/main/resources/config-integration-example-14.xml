@@ -1,0 +1,48 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:task="http://www.springframework.org/schema/task"
+
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+
+       http://www.springframework.org/schema/integration
+       http://www.springframework.org/schema/integration/spring-integration.xsd
+       http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+
+    <!-- START: CHANNELS -->
+    <int:channel id="packages-channel"
+                 datatype="com.chriniko.spring.integration.example.client.domain.Package"/>
+
+    <int:channel id="packages-result-channel"
+                 datatype="com.chriniko.spring.integration.example.client.domain.Package"/>
+    <!-- END: CHANNELS -->
+
+
+    <!-- START: WORKFLOW -->
+    <int:gateway service-interface="com.chriniko.spring.integration.example.client.gateway.PackagesGateway"
+                 default-request-channel="packages-channel"
+                 default-reply-channel="packages-result-channel" async-executor="workerExecutor">
+        <int:method name="process"/>
+    </int:gateway>
+
+
+    <int:chain input-channel="packages-channel" output-channel="packages-result-channel">
+        <int:service-activator ref="packagesFailActivator" method="handle"/>
+    </int:chain>
+
+    <!-- END: WORKFLOW -->
+
+
+    <!-- START: UTIL BEANS -->
+    <task:executor id="workerExecutor" keep-alive="7" pool-size="3-10" queue-capacity="50"
+                   rejection-policy="CALLER_RUNS"/>
+
+    <bean id="packagesFailActivator" class="com.chriniko.spring.integration.example.client.activator.PackagesFailActivator"/>
+    <!-- END: UTIL BEANS -->
+
+</beans>
